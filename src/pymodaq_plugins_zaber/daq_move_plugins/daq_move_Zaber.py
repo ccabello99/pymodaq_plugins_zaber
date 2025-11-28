@@ -1,5 +1,6 @@
+from typing import Union, List, Dict, Tuple
 from pymodaq.control_modules.move_utility_classes import DAQ_Move_base  # base class
-from pymodaq.control_modules.move_utility_classes import comon_parameters_fun, main  # common set of parameters for all actuators
+from pymodaq.control_modules.move_utility_classes import comon_parameters_fun, main, DataActuatorType, DataActuator  # common set of parameters for all actuators
 from pymodaq.utils.daq_utils import ThreadCommand, getLineInfo  # object used to send info back to the main thread
 from easydict import EasyDict as edict  # type of dict
 from zaber_motion.ascii import Connection
@@ -14,9 +15,10 @@ class DAQ_Move_Zaber(DAQ_Move_base):
     port = 'COM5' if 'COM5' in ports else ports[0] if len(ports) > 0 else ''
 
     is_multiaxes = True
-    _controller_units = 'mm'
-    stage_names = []
-    _epsilon = 0.01
+    _controller_units = ["mm", "deg"]
+    _axes_names: Union[List[str], Dict[str, int]] = {'1': 1, '2': 2}
+    _epsilon: Union[float, List[float]] = [0.01, 0.01]
+    data_actuator_type = DataActuatorType.DataActuator
 
     params = [{'title': 'COM Port:', 'name': 'com_port', 'type': 'list', 'limits': ports, 'value': port},
               {'title': 'Controller:', 'name': 'controller_str', 'type': 'str', 'value': ''},
@@ -24,7 +26,7 @@ class DAQ_Move_Zaber(DAQ_Move_base):
                   {'title': 'Stage Name:', 'name': 'stage_name', 'type': 'str', 'value': '', 'readonly': True},
                   {'title': 'Stage Type:', 'name': 'stage_type', 'type': 'str', 'value': '', 'readonly': True},
               ]}
-              ] + comon_parameters_fun(is_multiaxes, stage_names, epsilon=_epsilon)
+              ] + comon_parameters_fun(is_multiaxes, axes_names=_axes_names, epsilon=_epsilon)
 
     # Since we have no way of knowing how many axes are attached to the controller,
     # we modify axis to be an integer of any value instead of a list of strings.
